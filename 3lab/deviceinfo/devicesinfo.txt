@@ -1,0 +1,33 @@
+Count CUDA device = 2
+Device 0
+Compute capability     : 6.1
+Name                   : GeForce GTX 1050
+Total Global Memory    : 2094792704 byte
+Shared memory per block: 49152 byte
+Registers per block    : 65536
+Warp size              : 32
+Max threads per block  : 1024
+Total constant memory  : 65536 byte
+Clock Rate             : 1455000 kHz
+Texture Alignment      : 512
+Device Overlap         : 1
+Multiprocessor Count   : 5
+Max Threads Dim        : 1024 1024 64
+Max Grid Size          : 2147483647 65535 65535
+
+Device 1
+Compute capability     : 6.1
+Name                   : GeForce GTX 1050
+Total Global Memory    : 2096168960 byte
+Shared memory per block: 49152 byte
+Registers per block    : 65536
+Warp size              : 32
+Max threads per block  : 1024
+Total constant memory  : 65536 byte
+Clock Rate             : 1455000 kHz
+Texture Alignment      : 512
+Device Overlap         : 1
+Multiprocessor Count   : 5
+Max Threads Dim        : 1024 1024 64
+Max Grid Size          : 2147483647 65535 65535
+

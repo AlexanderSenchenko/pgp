@@ -1,0 +1,7 @@
+main
+
+*.pdf
+per*.sh
+
+test_transp/
+install_cuda/
