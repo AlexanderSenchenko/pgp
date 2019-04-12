@@ -3,5 +3,5 @@ main
 *.pdf
 per*.sh
 
-test_transp/
+test_*/
 install_cuda/

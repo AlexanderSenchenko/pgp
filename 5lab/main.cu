@@ -23,13 +23,13 @@ struct Vertex
 
 __constant__ Vertex vert[VERTCOUNT];
 texture<float, 3, cudaReadModeElementType> df_tex;
-cudaArray* df_Array = 0;
+cudaArray *df_Array = 0;
 
 float func(float x, float y, float z)
 {
 	return (0.5 * sqrtf(15.0 / M_PI)) * (0.5 * sqrtf(15.0 / M_PI)) *
-	z * z * y * y * sqrtf(1.0f - z * z / RADIUS / RADIUS) / RADIUS /
-	RADIUS / RADIUS / RADIUS;
+			z * z * y * y * sqrtf(1.0f - z * z / RADIUS / RADIUS) / RADIUS /
+			RADIUS / RADIUS / RADIUS;
 }
 
 float check(Vertex *v, ptr_f f)
@@ -40,17 +40,18 @@ float check(Vertex *v, ptr_f f)
 	return sum;
 }
 
-void calc_f(float *arr_f, int x_size, int y_size, int z_size, ptr_f f){
-for (int x = 0; x < x_size; ++x)
-	for (int y = 0; y < y_size; ++y)
-		for (int z = 0; z < z_size; ++z)
-			arr_f[z_size * (x * y_size + y) + z] =
-				f(x - FGSHIFT, y - FGSHIFT, z - FGSHIFT);
+void calc_f(float *arr_f, int x_size, int y_size, int z_size, ptr_f f)
+{
+	for (int x = 0; x < x_size; ++x)
+		for (int y = 0; y < y_size; ++y)
+			for (int z = 0; z < z_size; ++z)
+				arr_f[z_size * (x * y_size + y) + z] =
+					f(x - FGSHIFT, y - FGSHIFT, z - FGSHIFT);
 }
 
-void init_vertices()
+void init_vertex()
 {
-	Vertex *temp_vert = (Vertex *) malloc(sizeof(Vertex) * VERTCOUNT);
+	Vertex *temp_vert = (Vertex*) malloc(sizeof(Vertex) * VERTCOUNT);
 	int i = 0;
 	
 	for (int iphi = 0; iphi < 2 * COEF; ++iphi) {
@@ -68,6 +69,7 @@ void init_vertices()
 	cudaMemcpyToSymbol(vert, temp_vert, sizeof(Vertex) * VERTCOUNT, 0, 
 						cudaMemcpyHostToDevice);
 	free(temp_vert);
+	// return temp_vert;
 }
 
 void init_texture(float *df_h)
@@ -76,9 +78,9 @@ void init_texture(float *df_h)
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();
 	
 	cudaMalloc3DArray(&df_Array, &channelDesc, volumeSize);
-	cudaMemcpy3DParms cpyParams={ 0 };
+	cudaMemcpy3DParms cpyParams = { 0 };
 	
-	cpyParams.srcPtr = make_cudaPitchedPtr( (void*)df_h,
+	cpyParams.srcPtr = make_cudaPitchedPtr((void*) df_h,
 						volumeSize.width * sizeof(float), volumeSize.width,
 						volumeSize.height);
 	cpyParams.dstArray = df_Array;
@@ -126,15 +128,93 @@ __global__ void kernel(float *a)
 		a[blockIdx.x] = cache[0];
 }
 
+__device__ float f(float x, float y, float z)
+{
+	return (0.5 * sqrtf(15.0 / M_PI)) *
+	(0.5 * sqrtf(15.0 / M_PI)) *
+	z * z * y * y *
+	sqrtf(1.0f - z * z / RADIUS / RADIUS) /
+	RADIUS / RADIUS / RADIUS / RADIUS;
+}
+
+__device__ float interpol()
+{
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+	float x[3] = { 0 };
+	float y[3] = { 0 };
+	float z[3] = { 0 };
+
+	for (int i = 0; i < 2; i++) {
+		int iphi = (tid + i) / COEF;
+		int ipsi = (tid + i) % COEF;
+		float phi = iphi * M_PI / COEF;
+		float psi = ipsi * M_PI / COEF;
+		x[i] = RADIUS * sinf(psi) * cosf(phi);
+		y[i] = RADIUS * sinf(psi) * sinf(phi);
+		z[i] = RADIUS * cosf(psi);
+	}
+
+	x[2] = (x[0] + x[1]) / 2.0f;
+	y[2] = (y[0] + y[1]) / 2.0f;
+	z[2] = (z[0] + z[1]) / 2.0f;
+
+	if (x[2] < x[0] && y[2] < y[0] && z[2] < z[0]) {
+		x[2] = x[0];
+		y[2] = y[0];
+		z[2] = z[0];
+	} else if (x[2] > x[1] && y[2] > y[1] && z[2] > z[1]) {
+		x[2] = x[1];
+		y[2] = y[1];
+		z[2] = z[1];
+	}
+
+	float interses = 0.0f;
+	float del = (x[1] - x[0]) * (y[1] - y[0]) * (z[1] - z[0]);
+	if (del == 0.0f)
+		return 0.0f;
+
+	for (int i = 0; i < 8; i++) {
+		float func = f(x[i & 4], y[i & 2], z[i & 1]);
+		float xi = i & 4 ? x[2] - x[0] : x[1] - x[2];
+		float yi = i & 2 ? y[2] - y[0] : y[1] - y[2];
+		float zi = i & 1 ? z[2] - z[0] : z[1] - z[2];
+		func *= xi * yi * zi;
+		interses += func;
+	}
+	return interses / del;
+}
+
+__global__ void kernel_b(float *a)
+{
+	__shared__ float cache[THREADSPERBLOCK];
+	int cacheIndex = threadIdx.x;
+
+	cache[cacheIndex] = interpol();
+	__syncthreads();
+	for (int s = blockDim.x / 2; s > 0; s >>= 1) {
+		if (cacheIndex < s)
+			cache[cacheIndex] += cache[cacheIndex + s];
+		__syncthreads();
+	}
+
+	if (cacheIndex == 0)
+		a[blockIdx.x] = cache[0];
+}
+
 int main(void)
 {
 	float *arr = (float*) malloc(sizeof(float) * FGSIZE * FGSIZE * FGSIZE);
 	float *sum = (float*) malloc(sizeof(float) * BLOCKSPERGRID);
-	float *sum_dev;
+	float *sum_dev, *sum_dev_b;
+
+	printf("Block per grid: %d\n", BLOCKSPERGRID);
+	printf("Thread per block: %d\n", THREADSPERBLOCK);
 	
 	cudaMalloc((void**) &sum_dev, sizeof(float) * BLOCKSPERGRID);
-	
-	init_vertices();
+	cudaMalloc((void**) &sum_dev_b, sizeof(float) * BLOCKSPERGRID);
+
+	init_vertex();
 	calc_f(arr, FGSIZE, FGSIZE, FGSIZE, &func);
 	init_texture(arr);
 	
@@ -146,9 +226,21 @@ int main(void)
 	float s = 0.0f;
 	for (int i = 0; i < BLOCKSPERGRID; ++i)
 		s += sum[i];	
-	printf("sum = %f\n", s * M_PI * M_PI / COEF / COEF);
+	printf("Tex sum = %f\n", s * M_PI * M_PI / COEF / COEF);
+	
+
+	kernel_b<<<BLOCKSPERGRID, THREADSPERBLOCK>>>(sum_dev_b);
+	cudaThreadSynchronize();
+
+	cudaMemcpy(sum, sum_dev_b, sizeof(float) * BLOCKSPERGRID,
+				cudaMemcpyDeviceToHost);
+	s = 0.0f;
+	for (int i = 0; i < BLOCKSPERGRID; ++i)
+		s += sum[i];	
+	printf("Interpol sum = %f\n", s * M_PI * M_PI / COEF / COEF);
 
 	cudaFree(sum_dev);
+	cudaFree(sum_dev_b);
 	free(sum);
 	release_texture();
 	free(arr);
