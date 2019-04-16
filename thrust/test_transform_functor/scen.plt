@@ -46,4 +46,4 @@ set output "data_sin.png"
 	# "32_32.txt" u 1:2 w linespoints ls 4 pt 8 title "blocks: 32 threads: 32",\
 	# "8_128.txt" u 1:2 w linespoints ls 5 pt 6 title "blocks: 8 threads: 128"
 
-plot "data_sin" u 1:2 w linespoints ls 1 pt 7 title "sin"
+plot "data_sin.txt" u 1:2 w linespoints ls 1 pt 7 title "sin"

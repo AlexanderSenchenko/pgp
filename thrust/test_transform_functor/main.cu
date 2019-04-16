@@ -26,7 +26,7 @@ struct sin_functor
 int main()
 {
 	range_functor R(0.02);
-	sin_functor Sin;
+	// sin_functor Sin;
 
 	fprintf(stderr, "%g\n", R(30.0f));
 
@@ -36,7 +36,7 @@ int main()
 	thrust::device_vector<float> d2(1 << 8);
 	thrust::sequence(thrust::device, d1.begin(), d2.end());
 	thrust::transform(d1.begin(), d1.end(), d1.begin(), R);
-	thrust::transform(d1.begin(), d1.end(), d2.begin(), Sin);
+	thrust::transform(d1.begin(), d1.end(), d2.begin(), sin_functor());
 
 	h2 = d2;
 	h1 = d1;
