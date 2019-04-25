@@ -5,4 +5,4 @@ GLUT := -I/usr/local/include -L/usr/local/lib -lglut
 HELP := -lm -lXrandr -lXi -lX11 -lXxf86vm -lpthread -ldl
 
 all:
-	g++ -Wall main.cpp sh_template.cpp util_template.cpp -o main $(GLEW) $(GLFW) $(HELP)
+	g++ -Wall main.cpp -o main $(GLEW) $(GLFW) $(GLUT) $(HELP)
