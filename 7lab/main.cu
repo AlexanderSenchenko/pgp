@@ -7,7 +7,7 @@
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/sequence.h>
 
-#define STEPS 1
+#define STEPS 1024
 #define LENGTH 1024
 #define U 0.1f
 #define H 0.1f

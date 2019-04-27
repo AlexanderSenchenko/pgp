@@ -30,7 +30,8 @@ struct saxpy_functor
 	}
 };
 
-void saxpy(float a, thrust::device_vector<float> &x, thrust::device_vector<float> &y)
+void saxpy(float a, thrust::device_vector<float> &x,
+									thrust::device_vector<float> &y)
 {
 	saxpy_functor func(a);
 	thrust::transform(
@@ -43,7 +44,8 @@ void saxpy(float a, thrust::device_vector<float> &x, thrust::device_vector<float
 	);
 }
 
-__host__ void print_array(thrust::host_vector<float> &data1, thrust::host_vector<float> &data2, int num_elem, const char * prefix)
+__host__ void print_array(thrust::host_vector<float> &data1,
+	thrust::host_vector<float> &data2, int num_elem, const char * prefix)
 {
 	printf("\n%s", prefix);
 	for (int i = 0; i < num_elem; i++)
