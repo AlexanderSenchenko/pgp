@@ -4,5 +4,7 @@ GLM := -I/usr/local/include
 GLUT := -I/usr/local/include -L/usr/local/lib -lglut
 HELP := -lm -lXrandr -lXi -lX11 -lXxf86vm -lpthread -ldl
 
+CPP_FILE := main.cpp shader.cpp
+
 all:
-	g++ -Wall main.cpp -o main $(GLEW) $(GLFW) $(GLUT) $(HELP)
+	g++ -Wall $(CPP_FILE) -o main $(GLEW) $(GLFW) $(GLUT) $(HELP)
