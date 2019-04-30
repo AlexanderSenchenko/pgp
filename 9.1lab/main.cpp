@@ -13,20 +13,24 @@ int main()
 	progHandle = LoadShaders("SimpleVertexShader.glsl",
 								"SimpleFragmentShader.glsl");
 
-	GLuint MatrixID = glGetUniformLocation(progHandle, "MVP");
+	// GLuint translateMatrixID = glGetUniformLocation(progHandle, "translateMatrix");
+	// GLuint scaleMatrixID = glGetUniformLocation(progHandle, "scaleMatrixID");
+	GLuint matrixID =  glGetUniformLocation(progHandle, "MVP");
 
 	glm::mat4 translateMatrix;
+	glm::mat4 scaleMatrix;
 	glm::mat4 MVP;
 
 	GLfloat valueX = 0.0f;
 	GLfloat valueY = 0.0f;
+	GLfloat scale = 1.0f;
 
 	// initBuffer();
 	glGenBuffers(1, &bufferID);
 
 	glm::vec3 vertex_buffer_data[] = {
 		glm::vec3(-0.9f, -0.9f, -0.0f),
-		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 0.2f, 0.0f),
 		glm::vec3(0.9f, -0.5f, 0.0f)
 	};
 
@@ -37,6 +41,8 @@ int main()
 
 		translateMatrix = glm::translate(glm::mat4(1.0f),
 					glm::vec3(valueX, valueY, 0.0f));
+
+		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
 
 		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 			valueX -= 0.01f;
@@ -58,8 +64,26 @@ int main()
 			translateMatrix = glm::translate(glm::mat4(1.0f),
 					glm::vec3(valueX, valueY, 0.0f));
 		}
+		if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
+			scale += 0.01f;
+			scaleMatrix = glm::scale(glm::mat4(1.0f),
+				glm::vec3(scale, scale, scale));
+		}
+		if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
+			scale -= 0.01f;
+			scaleMatrix = glm::scale(glm::mat4(1.0f),
+				glm::vec3(scale, scale, scale));
+		}
 
-		MVP = translateMatrix;
+		MVP = translateMatrix * scaleMatrix;
+
+		#if 0
+		printf("\n");
+		for (int i = 0; i < 4; i++) {
+			printf("%f %f %f %f\n", MVP[i].x, MVP[i].y, MVP[i].z, MVP[i].w);
+		}
+		printf("\n");
+		#endif
 
 		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data),
@@ -67,7 +91,9 @@ int main()
 
 		glUseProgram(progHandle);
 
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+		// glUniformMatrix4fv(translateMatrixID, 1, GL_FALSE, &translateMatrix[0][0]);
+		// glUniformMatrix4fv(scaleMatrixID, 1, GL_FALSE, &scaleMatrix[0][0]);
+		glUniformMatrix4fv(matrixID, 1, GL_FALSE, &MVP[0][0]);
 
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
