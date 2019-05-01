@@ -33,5 +33,6 @@ int translateTriangles();
 int scaleTriangles();
 
 int testMoveTrianglesCursor();
+int testRotateMatrix();
 
 #endif

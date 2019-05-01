@@ -1,11 +1,17 @@
 #include "main.hpp"
 
-glm::mat4 translateMatrix;
 glm::mat4 scaleMatrix;
+glm::mat4 rotateMatrixY;
+glm::mat4 rotateMatrixX;
+glm::mat4 translateMatrix;
 
 GLfloat valueX = 0.0f;
 GLfloat valueY = 0.0f;
+
 GLfloat scale = 1.0f;
+
+float angleY = 0.0f;
+float angleX = 0.0f;
 
 int main()
 {
@@ -22,15 +28,24 @@ int main()
 	progHandle = LoadShaders("SimpleVertexShader.glsl",
 								"SimpleFragmentShader.glsl");
 
-	GLuint translateMatrixID = glGetUniformLocation(progHandle,
-												"translateMatrix");
 	GLuint scaleMatrixID = glGetUniformLocation(progHandle,
 													"scaleMatrix");
+	GLuint rotateMatrixIDY = glGetUniformLocation(progHandle,
+													"rotateMatrixY");
+	GLuint rotateMatrixIDX = glGetUniformLocation(progHandle,
+													"rotateMatrixX");
+	GLuint translateMatrixID = glGetUniformLocation(progHandle,
+												"translateMatrix");
 
-	translateMatrix = glm::translate(glm::mat4(1.0f),
-					glm::vec3(valueX, valueY, 0.0f));
 	scaleMatrix = glm::scale(glm::mat4(1.0f),
 								glm::vec3(scale, scale, scale));
+	rotateMatrixY = glm::rotate(glm::mat4(1.0f),
+								0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	rotateMatrixX = glm::rotate(glm::mat4(1.0f),
+								0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	translateMatrix = glm::translate(glm::mat4(1.0f),
+								glm::vec3(valueX, valueY, 0.0f));
+	
 	glm::mat4 MVP;
 
 	// initBuffer();
@@ -50,14 +65,21 @@ int main()
 	do {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		testMoveTrianglesCursor();
+		// testMoveTrianglesCursor();
 		scaleTriangles();
-		translateTriangles();
+		// translateTriangles();
+		testRotateMatrix();
+
+		// rotateMatrix = glm::rotate(glm::mat4(1.0f),
+								// angle, glm::vec3(0.0f, 0.0f, 1.0f));
+
+		// angle += 0.01f;
 
 		// MVP = translateMatrix * scaleMatrix;
-		MVP = translateMatrix;
+		// MVP = translateMatrix;
+		// MVP = rotateMatrix;
 
-		#if 0
+		#if 1
 		printf("\n");
 		for (int i = 0; i < 4; i++) {
 			printf("%f %f %f %f\n",
@@ -72,10 +94,14 @@ int main()
 
 		glUseProgram(progHandle);
 
-		glUniformMatrix4fv(translateMatrixID, 1, GL_FALSE,
-												&translateMatrix[0][0]);
 		glUniformMatrix4fv(scaleMatrixID, 1, GL_FALSE,
 												&scaleMatrix[0][0]);
+		glUniformMatrix4fv(rotateMatrixIDY, 1, GL_FALSE,
+												&rotateMatrixY[0][0]);
+		glUniformMatrix4fv(rotateMatrixIDX, 1, GL_FALSE,
+												&rotateMatrixX[0][0]);
+		glUniformMatrix4fv(translateMatrixID, 1, GL_FALSE,
+												&translateMatrix[0][0]);
 		// glUniformMatrix4fv(matrixID, 1, GL_FALSE, &MVP[0][0]);
 
 		glEnableVertexAttribArray(0);
@@ -102,6 +128,32 @@ int main()
 	glDeleteProgram(progHandle);
 
 	glfwTerminate();
+
+	return 0;
+}
+
+int testRotateMatrix()
+{
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		angleY -= 0.01f;
+		rotateMatrixY = glm::rotate(glm::mat4(1.0f),
+								angleY, glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		angleY += 0.01f;
+		rotateMatrixY = glm::rotate(glm::mat4(1.0f),
+								angleY, glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		angleX += 0.01f;
+		rotateMatrixX = glm::rotate(glm::mat4(1.0f),
+								angleX, glm::vec3(1.0f, 0.0f, 0.0f));
+	}
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		angleX -= 0.01f;
+		rotateMatrixX = glm::rotate(glm::mat4(1.0f),
+								angleX, glm::vec3(1.0f, 0.0f, 0.0f));
+	}
 
 	return 0;
 }
