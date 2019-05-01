@@ -29,5 +29,9 @@ const int num_of_verticies = 3;
 int initGL();
 int initBuffer();
 int initColorBuffer();
+int translateTriangles();
+int scaleTriangles();
+
+int testMoveTrianglesCursor();
 
 #endif
