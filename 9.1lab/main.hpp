@@ -46,4 +46,6 @@ int translateTrianglesCursor();
 int scaleTrianglesKey();
 int rotateTrianglesKey();
 
+int randColorBuffer();
+
 #endif

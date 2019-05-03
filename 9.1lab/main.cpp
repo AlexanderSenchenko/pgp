@@ -1,5 +1,9 @@
 #include "main.hpp"
 
+#include <cstdlib>
+
+GLfloat color_buffer_data[36];
+
 int main()
 {
 	if (initGL() == -1)
@@ -50,6 +54,9 @@ int main()
 		translateTrianglesCursor();
 		// translateTrianglesKey();
 
+		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+			randColorBuffer();
+
 		glUseProgram(progHandle);
 
 		glUniformMatrix4fv(scaleMatrixID, 1, GL_FALSE,
@@ -85,6 +92,20 @@ int main()
 	glDeleteProgram(progHandle);
 
 	glfwTerminate();
+
+	return 0;
+}
+
+int randColorBuffer()
+{
+	srand(time(NULL));
+
+	for (int i = 0; i < 36; i++) {
+		color_buffer_data[i] = (GLfloat) rand() / RAND_MAX;
+	}
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(color_buffer_data),
+								color_buffer_data, GL_STATIC_DRAW);
 
 	return 0;
 }
