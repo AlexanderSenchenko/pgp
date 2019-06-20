@@ -377,7 +377,6 @@ float array_data[][4] = {
 __global__ void gInitData(cufftComplex *data, cufftComplex *in_data)
 {
 	int i=threadIdx.x+blockDim.x*blockIdx.x;
-	// float x=i*2.0f*pi/(NX);
 	float x = in_data[i].x*2.0f*pi/(NX);
 	data[i].x=cosf(x)-3.0f*sinf(x);
 	data[i].y=0.0f;

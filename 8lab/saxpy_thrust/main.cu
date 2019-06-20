@@ -45,7 +45,7 @@ void saxpy(float a, thrust::device_vector<float> &x,
 }
 
 __host__ void print_array(thrust::host_vector<float> &data1,
-	thrust::host_vector<float> &data2, int num_elem, const char * prefix)
+	thrust::host_vector<float> &data2, int num_elem, const char *prefix)
 {
 	printf("\n%s", prefix);
 	for (int i = 0; i < num_elem; i++)
